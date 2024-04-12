@@ -57,36 +57,43 @@ The Bash script should output a summary report containing identified patterns an
 # Bash Script to Analyze Network Traffic
 
 # Input: Path to the Wireshark pcap file
-pcap_file= # capture input from terminal.
+pcap_file="$1"
+tshark_path="/path/to/tshark"  # Update this with the actual path to tshark
 
 # Function to extract information from the pcap file
 analyze_traffic() {
-    # Use tshark or similar commands for packet analysis.
-    # Hint: Consider commands to count total packets, filter by protocols (HTTP, HTTPS/TLS),
-    # extract IP addresses, and generate summary statistics.
+    # Use tshark with the specified path for packet analysis.
+    total_packets=$("$tshark_path" -r "$pcap_file" | wc -l)
+    http_packets=$("$tshark_path" -r "$pcap_file" -Y "http" | wc -l)
+    https_packets=$("$tshark_path" -r "$pcap_file" -Y "tls" | wc -l)
+    top_source_ips=$("$tshark_path" -r "$pcap_file" -T fields -e ip.src | sort | uniq -c | sort -nr | head -n 5)
+    top_dest_ips=$("$tshark_path" -r "$pcap_file" -T fields -e ip.dst | sort | uniq -c | sort -nr | head -n 5)
 
     # Output analysis summary
     echo "----- Network Traffic Analysis Report -----"
-    # Provide summary information based on your analysis
-    # Hints: Total packets, protocols, top source, and destination IP addresses.
-    echo "1. Total Packets: [your_total_packets]"
+    echo "1. Total Packets: $total_packets"
     echo "2. Protocols:"
-    echo "   - HTTP: [your_http_packets] packets"
-    echo "   - HTTPS/TLS: [your_https_packets] packets"
+    echo "   - HTTP: $http_packets packets"
+    echo "   - HTTPS/TLS: $https_packets packets"
     echo ""
     echo "3. Top 5 Source IP Addresses:"
-    # Provide the top source IP addresses
-    echo "[your_top_source_ips]"
+    echo "$top_source_ips"
     echo ""
     echo "4. Top 5 Destination IP Addresses:"
-    # Provide the top destination IP addresses
-    echo "[your_top_dest_ips]"
+    echo "$top_dest_ips"
     echo ""
     echo "----- End of Report -----"
 }
 
+# Check if the pcap file argument is provided
+if [ -z "$pcap_file" ]; then
+    echo "Usage: ./analyze_traffic.sh /path/to/your_capture_file.pcap"
+    exit 1
+fi
+
 # Run the analysis function
 analyze_traffic
+
 
 ```
 
